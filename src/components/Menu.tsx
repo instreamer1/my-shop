@@ -72,7 +72,7 @@ const Menu: React.FC<MenuProps> = ({ isMenuOpen, setIsMenuOpen }) => {
   const menuHeaderTitle = useMemo(() => {
     if (catalogSubmenu) return catalogSubmenu;
     if (activePanel === "catalog") return "Каталог";
-    return "DABI";
+    return "BABI";
   }, [catalogSubmenu, activePanel]);
 
   const showBackButton = useMemo(
@@ -192,8 +192,9 @@ const Menu: React.FC<MenuProps> = ({ isMenuOpen, setIsMenuOpen }) => {
             // Для элементов с подменю - обработчик подменю
             // Для обычных элементов - href для Link
             onSubmenuClick: item.hasSubmenu
-              ? () => handleSubmenuClick(item.label)
-              : undefined,
+              ? undefined
+              // () => handleSubmenuClick(item.label)
+              : () => handleCategoryClick(item.href),
           }))}
         />
         {/* {activePanel === "catalog" && !catalogSubmenu && (
@@ -213,7 +214,9 @@ const Menu: React.FC<MenuProps> = ({ isMenuOpen, setIsMenuOpen }) => {
         <MenuList
           items={currentSubmenuItems.map((item) => ({
             ...item,
-            // Для подкатегорий используем href для Link
+               onSubmenuClick: item.hasSubmenu
+              ?  handleSubmenuClick(item.label)
+              : undefined,
           }))}
         />
         {/* {catalogSubmenu && (

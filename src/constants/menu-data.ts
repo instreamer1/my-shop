@@ -24,7 +24,7 @@ export const CATALOG_ITEMS = [
   {
     slug: "topy-ta-biusthaltery",
     label: "Топи та бюстгальтери",
-    href: "/shop/category/topy-ta-biusthaltery",
+    href: "/topy-ta-biusthaltery",
     hasSubmenu: true,
     submenuItems: [
       { slug: "topy", href: "/topy", label: "Топи" },
@@ -87,7 +87,7 @@ export const CATALOG_ITEMS = [
   {
     slug: "inshe",
     label: "Інше",
-    href: "//inshe",
+    href: "/inshe",
     hasSubmenu: false,
   },
 ] as const;
@@ -101,13 +101,13 @@ export const CONTACTS = [
   {
     type: "telegram" as const,
     href: "tg://resolve?domain=%40dabi_ua",
-    label: "@dabi_ua",
+    label: "@babi_ua",
   },
 ] as const;
 
 export const SOCIAL_LINKS = [
   {
-    href: "https://www.instagram.com/dabiua/",
+    href: "https://www.instagram.com/babiua/",
     title: "Instagram",
     icon: "instagram" as const,
   },
@@ -117,7 +117,7 @@ export const SOCIAL_LINKS = [
     icon: "tiktok" as const,
   },
   {
-    href: "https://t.me/dabi_ua",
+    href: "https://t.me/babi_ua",
     title: "Telegram",
     icon: "telegram" as const,
   },

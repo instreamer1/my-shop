@@ -4,7 +4,7 @@ import { BackIcon, CloseIcon } from "./MenuIcon";
 const MenuHeader = memo(function MenuHeader({ 
   onBack, 
   onClose, 
-  title = 'DABI',
+  title = 'BABI',
   showBackButton = false 
 }: { 
   onBack?: () => void;

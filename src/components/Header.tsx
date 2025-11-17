@@ -3,23 +3,24 @@
 import { useState } from "react";
 import Link from "next/link";
 import Menu from "./Menu";
+import { CATALOG_ITEMS } from "../constants/menu-data";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuItems = [
     { label: "Розпродаж", href: "/sale" },
-    { label: "Трусики", href: "/category/trusiki" },
-    { label: "Топи та бюстгальтери", href: "/category/tops" },
-    { label: "Базові комплекти", href: "/category/basic" },
+    { label: "Трусики", href: "/trusiki" },
+    { label: "Топи та бюстгальтери", href: "/tops" },
+    { label: "Базові комплекти", href: "/basic" },
     { label: "Комплекти з сіточки", href: "/category/mesh" },
-    { label: "Лосини, колготи, шкарпетки", href: "/category/leggings" },
-    { label: "Піжами та халати", href: "/category/pijamas" },
-    { label: "Купальники та парео", href: "/category/swim" },
-    { label: "Боді", href: "/category/body" },
-    { label: "Гартери та панчохи", href: "/category/garters" },
-    { label: "Чоловікам", href: "/category/men" },
-    { label: "Інше", href: "/category/other" },
+    { label: "Лосини, колготи, шкарпетки", href: "/leggings" },
+    { label: "Піжами та халати", href: "/pijamas" },
+    { label: "Купальники та парео", href: "/swim" },
+    { label: "Боді", href: "/body" },
+    { label: "Гартери та панчохи", href: "/garters" },
+    { label: "Чоловікам", href: "/men" },
+    { label: "Інше", href: "/other" },
   ];
 
   return (
@@ -28,12 +29,12 @@ export default function Header() {
       <div className="max-w-6xl mx-auto px-4 flex justify-between items-center py-4">
         {/* Логотип */}
         <Link href="/" className="text-3xl font-bold">
-          DABI
+          BABI
         </Link>
 
         {/* Меню десктоп */}
         <nav className="hidden lg:flex gap-6">
-          {menuItems.map((item) => (
+          {CATALOG_ITEMS.map((item) => (
             <Link
               key={item.label}
               href={item.href}
