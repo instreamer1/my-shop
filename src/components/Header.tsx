@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Menu from "./Menu";
 import { CATALOG_ITEMS } from "../constants/menu-data";
+import MenuMobile from "./MenuMobile";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,15 +34,36 @@ export default function Header() {
 
         {/* Меню десктоп */}
         <nav className="hidden lg:flex gap-6">
-          {CATALOG_ITEMS.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="text-sm font-medium hover:text-green-800 transition"
-            >
-              {item.label}
-            </Link>
-          ))}
+    {CATALOG_ITEMS.map((item) =>
+            item.hasSubmenu ? (
+              <div key={item.slug} className="group relative">
+                <button className="px-3 py-2 font-medium text-gray-700 hover:text-blue-600">
+                  {item.label}
+                </button>
+                {item.submenuItems && (
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white shadow-lg rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
+                    {item.submenuItems.map((sub) => (
+                      <Link
+                        key={sub.slug}
+                        href={sub.href}
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                key={item.slug}
+                href={item.href}
+                className="px-3 py-2 font-medium text-gray-700 hover:text-blue-600"
+              >
+                {item.label}
+              </Link>
+            )
+          )}
         </nav>
 
         {/* Иконки */}
@@ -64,7 +85,12 @@ export default function Header() {
           </button>
         </div>
       </div>
-      <Menu isMenuOpen= {isMenuOpen} setIsMenuOpen= {setIsMenuOpen} />
+            {/* Мобильное меню */}
+      {isMenuOpen && (
+        <div className="lg:hidden">
+          <MenuMobile isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+        </div>
+      )}
       {/* Мобильное меню */}
       {/* {isMenuOpen && (
         <nav className="lg:hidden w-[calc(100% - (48px - 8px))] bg-white border-t shadow-md flex flex-col p-4">

@@ -28,6 +28,14 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* menu styles */
 .menu-transition {
   transition: transform 0.4s ease;

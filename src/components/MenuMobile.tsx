@@ -1,7 +1,262 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import {
+  useState,
+  useCallback,
+  useMemo,
+  memo,
+  useRef,
+  useEffect,
+} from "react";
+import {
+  MENU_ITEMS,
+  CATALOG_ITEMS,
+  CONTACTS,
+  SOCIAL_LINKS,
+} from "../constants/menu-data";
+
+import MenuHeader from "./MenuHeader";
+import MenuList from "./MenuList";
+import { CatalogIcon, ContactIcon, ProfileIcon, SocialIcon } from "./MenuIcon";
+
+interface MenuMobileProps {
+  isMenuOpen: boolean;
+  setIsMenuOpen: (open: boolean) => void;
+}
+
+/**
+ * Mobile drawer menu:
+ * - panels: start -> catalog -> submenu
+ * - swipe open/close
+ * - close on item click (even if href is absent)
+ * - body scroll lock while open
+ */
+const MenuMobile: React.FC<MenuMobileProps> = ({ isMenuOpen, setIsMenuOpen }) => {
+  const router = useRouter();
+
+  // panels
+  const [activePanel, setActivePanel] = useState<"start" | "catalog">("start");
+  const [catalogSubmenu, setCatalogSubmenu] = useState<string | null>(null);
+
+  // swipe
+  const startX = useRef(0);
+  const dragging = useRef(false);
+  const [dragX, setDragX] = useState(0);
+  const DRAWER_WIDTH = 320; // px (approx w-80)
+
+  // lock body scroll when open
+  useEffect(() => {
+    if (isMenuOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [isMenuOpen]);
+
+  // close and reset
+  const closeMenu = useCallback(() => {
+    setIsMenuOpen(false);
+    setActivePanel("start");
+    setCatalogSubmenu(null);
+    setDragX(0);
+  }, [setIsMenuOpen]);
+
+  const handleBack = useCallback(() => {
+    if (catalogSubmenu) {
+      setCatalogSubmenu(null);
+      return;
+    }
+    if (activePanel === "catalog") {
+      setActivePanel("start");
+    }
+  }, [catalogSubmenu, activePanel]);
+
+  const openCatalog = useCallback(() => setActivePanel("catalog"), []);
+  const openSubmenu = useCallback((label: string) => setCatalogSubmenu(label), []);
+
+  // unified item handler: navigate if href, always close
+  const handleItem = useCallback(
+    (href?: string) => {
+      if (href) {
+        // router.push is client navigation
+        router.push(href);
+      }
+      closeMenu();
+    },
+    [router, closeMenu]
+  );
+
+  // swipe handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    dragging.current = true;
+    startX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!dragging.current) return;
+    const currentX = e.touches[0].clientX;
+    const delta = currentX - startX.current;
+
+    // when open -> user swipes left (negative) to close
+    if (isMenuOpen) {
+      if (delta < 0) setDragX(Math.max(delta, -DRAWER_WIDTH));
+    } else {
+      // when closed -> user swipes right (positive) to open
+      if (delta > 0 && delta < DRAWER_WIDTH) {
+        setDragX(-DRAWER_WIDTH + delta);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    dragging.current = false;
+
+    if (isMenuOpen) {
+      // if dragged left enough -> close
+      if (dragX < -80) closeMenu();
+    } else {
+      // if dragged right enough -> open
+      if (dragX > -DRAWER_WIDTH + 120) setIsMenuOpen(true);
+    }
+
+    setDragX(0);
+  };
+
+  // derived submenu items
+  const currentSubmenuItems = useMemo(() => {
+    if (!catalogSubmenu) return [];
+    const parent = CATALOG_ITEMS.find((i) => i.label === catalogSubmenu || i.slug === catalogSubmenu);
+    return parent?.submenuItems || [];
+  }, [catalogSubmenu]);
+
+  const title = useMemo(() => {
+    if (catalogSubmenu) return catalogSubmenu;
+    if (activePanel === "catalog") return "Каталог";
+    return "BABI";
+  }, [activePanel, catalogSubmenu]);
+
+  const showBack = activePanel !== "start" || catalogSubmenu !== null;
+
+  // do not render when closed and no dragging
+  if (!isMenuOpen && dragX === 0) return null;
+
+  return (
+    <>
+      {/* overlay */}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeMenu}
+        />
+      )}
+
+      {/* drawer */}
+      <div
+        className="fixed top-0 left-0 h-full w-80 max-w-full bg-white shadow-xl z-50 lg:hidden transform transition-transform duration-300"
+        style={{
+          // when open -> translateX(dragX)
+          // when closed -> offscreen (-100%) + dragX (negative -> still offscreen)
+          transform: isMenuOpen
+            ? `translateX(${dragX}px)`
+            : `translateX(calc(-100% + ${dragX}px))`,
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <MenuHeader
+          title={title}
+          onBack={showBack ? handleBack : undefined}
+          onClose={closeMenu}
+          showBackButton={showBack}
+        />
+
+        {/* START */}
+        {activePanel === "start" && !catalogSubmenu && (
+          <div className="h-full overflow-y-auto">
+            <MenuList
+              items={[{ label: "Каталог", hasSubmenu: true, slug: "catalog" }]}
+              onSubmenuClick={() => openCatalog()}
+            />
+
+            <MenuList items={MENU_ITEMS} onItemClick={handleItem} />
+
+            <MenuList
+              items={[
+                { href: "#login", label: "Вхід для клієнтів", icon: <ProfileIcon /> },
+              ]}
+              onItemClick={handleItem}
+            />
+
+            <div className="border-t border-gray-200 py-2">
+              <li className="px-4 py-2 text-xs text-gray-500">Контакти</li>
+              {CONTACTS.map((c, i) => (
+                <li key={c.href ?? i}>
+                  <a
+                    href={c.href}
+                    className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50"
+                    onClick={() => closeMenu()}
+                  >
+                    <ContactIcon type={c.type} />
+                    <span className="ml-2">{c.label}</span>
+                  </a>
+                </li>
+              ))}
+            </div>
+
+            <div className="p-4">
+              <div className="text-sm font-semibold mb-3 text-gray-600">МИ В СОЦМЕРЕЖАХ</div>
+              <div className="flex gap-3">
+                {SOCIAL_LINKS.map((s, i) => (
+                  <a
+                    key={s.href ?? i}
+                    href={s.href}
+                    target="_blank"
+                    rel="nofollow noopener noreferrer"
+                    className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200 transition"
+                    onClick={() => closeMenu()}
+                  >
+                    <SocialIcon icon={s.icon} />
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CATALOG */}
+        {activePanel === "catalog" && !catalogSubmenu && (
+          <div className="h-full overflow-y-auto">
+            <MenuList
+              items={CATALOG_ITEMS}
+              onSubmenuClick={(labelOrSlug) => openSubmenu(labelOrSlug)}
+              onItemClick={handleItem}
+            />
+          </div>
+        )}
+
+        {/* SUBMENU */}
+        {catalogSubmenu && (
+          <div className="h-full overflow-y-auto">
+            <MenuList items={currentSubmenuItems} onItemClick={handleItem} />
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
+
+export default memo(MenuMobile);
+
+
+
 // "use client";
 
 // import { useRouter } from "next/navigation";
-// import { useState, useCallback, useMemo, memo } from "react";
+// import { useState, useCallback, useMemo, memo, useRef } from "react";
 // import {
 //   MENU_ITEMS,
 //   CATALOG_ITEMS,
@@ -14,170 +269,224 @@
 
 // // ... остальные мемоизированные компоненты (BackIcon, CloseIcon и т.д.)
 
-// interface MenuProps {
+// interface MenuMobileProps {
 //   setIsMenuOpen: (isOpen: boolean) => void;
 //   isMenuOpen: boolean;
 // }
 
-// const Menu: React.FC<MenuProps> = ({ isMenuOpen, setIsMenuOpen }) => {
-//   const router = useRouter();
+// const MenuMobile: React.FC<MenuMobileProps> = ({
+//   isMenuOpen,
+//   setIsMenuOpen,
+// }) => {
+//    const router = useRouter();
 
+//   // Панель
 //   const [activePanel, setActivePanel] = useState<"start" | "catalog">("start");
 //   const [catalogSubmenu, setCatalogSubmenu] = useState<string | null>(null);
 
-//   // Мемоизированные обработчики
-//   const handleCloseMenu = useCallback(() => {
+//   // SWIPE
+//   const startX = useRef(0);
+//   const dragging = useRef(false);
+//   const [dragX, setDragX] = useState(0);
+
+//   // =========================================
+//   // BASIC HANDLERS
+//   // =========================================
+
+//   const closeMenu = useCallback(() => {
 //     setIsMenuOpen(false);
+//     setActivePanel("start");
+//     setCatalogSubmenu(null);
+//     setDragX(0);
 //   }, [setIsMenuOpen]);
 
 //   const handleBack = useCallback(() => {
-//     if (catalogSubmenu) {
-//       setCatalogSubmenu(null);
-//     } else if (activePanel === "catalog") {
-//       setActivePanel("start");
-//     }
+//     if (catalogSubmenu) return setCatalogSubmenu(null);
+//     if (activePanel === "catalog") return setActivePanel("start");
 //   }, [catalogSubmenu, activePanel]);
 
-//   const handleCatalogClick = useCallback(() => {
+//   const openCatalog = useCallback(() => {
 //     setActivePanel("catalog");
 //   }, []);
 
-//   const handleSubmenuClick = useCallback((itemLabel: string) => {
-//     setCatalogSubmenu(itemLabel);
+//   const openSubmenu = useCallback((label: string) => {
+//     setCatalogSubmenu(label);
 //   }, []);
 
-//   const handleCategoryClick = useCallback(
+//   const goTo = useCallback(
 //     (href: string) => {
 //       router.push(href);
-//       setIsMenuOpen(false);
+//       closeMenu();
 //     },
-//     [router, setIsMenuOpen]
+//     [router, closeMenu]
 //   );
 
-//   const handleSubcategoryClick = useCallback(
-//     (href: string) => {
-//       router.push(href);
-//       setIsMenuOpen(false);
-//     },
-//     [router, setIsMenuOpen]
-//   );
+//   // =========================================
+//   // SWIPE HANDLERS
+//   // =========================================
 
-//   // Мемоизированные вычисления
+//   const handleTouchStart = (e: React.TouchEvent) => {
+//     dragging.current = true;
+//     startX.current = e.touches[0].clientX;
+//   };
+
+//   const handleTouchMove = (e: React.TouchEvent) => {
+//     if (!dragging.current) return;
+
+//     const currentX = e.touches[0].clientX;
+//     const delta = currentX - startX.current;
+
+//     // MENU IS OPEN ⇒ swipe left to close
+//     if (isMenuOpen) {
+//       if (delta < 0) {
+//         setDragX(delta); // negative
+//       }
+//     }
+
+//     // MENU IS CLOSED ⇒ swipe right to open
+//     if (!isMenuOpen) {
+//       if (delta > 0 && delta < 280) {
+//         setDragX(-280 + delta); // panel follows finger
+//       }
+//     }
+//   };
+
+//   const handleTouchEnd = () => {
+//     dragging.current = false;
+
+//     // Closing gesture
+//     if (isMenuOpen) {
+//       if (dragX < -70) {
+//         closeMenu();
+//       }
+//     } else {
+//       // Opening gesture
+//       if (dragX > -200) {
+//         setIsMenuOpen(true);
+//       }
+//     }
+
+//     // reset animation
+//     setDragX(0);
+//   };
+
+//   // =========================================
+//   // DERIVED MEMO VALUES
+//   // =========================================
+
 //   const currentSubmenuItems = useMemo(() => {
 //     if (!catalogSubmenu) return [];
-//     const item = CATALOG_ITEMS.find((item) => item.label === catalogSubmenu);
-//     return item?.submenuItems || [];
+//     const parent = CATALOG_ITEMS.find((i) => i.label === catalogSubmenu);
+//     return parent?.submenuItems || [];
 //   }, [catalogSubmenu]);
 
-//   const menuHeaderTitle = useMemo(() => {
+//   const title = useMemo(() => {
 //     if (catalogSubmenu) return catalogSubmenu;
 //     if (activePanel === "catalog") return "Каталог";
 //     return "BABI";
-//   }, [catalogSubmenu, activePanel]);
+//   }, [activePanel, catalogSubmenu]);
 
-//   const showBackButton = useMemo(
-//     () => activePanel === "catalog" || catalogSubmenu !== null,
-//     [activePanel, catalogSubmenu]
-//   );
+//   const showBack =
+//     activePanel === "catalog" || catalogSubmenu !== null;
 
-//   // Ранний возврат для оптимизации
-//   if (!isMenuOpen) return null;
+  
+
+//   if (!isMenuOpen && dragX === 0) return null;
+
+//   // =========================================
+//   // RENDER
+//   // =========================================
 
 //   return (
 //     <>
-//       {/* Mobile Menu Overlay */}
-//       <div
-//         className="fixed inset-0 bg-(--backdrop) bg-opacity-50 z-40 lg:hidden"
-//         onClick={handleCloseMenu}
-//       />
+//       {/* Overlay */}
+//       {isMenuOpen && (
+//         <div
+//           className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+//           onClick={closeMenu}
+//         />
+//       )}
 
-//       {/* Mobile Menu */}
+//       {/* MENU DRAWER */}
 //       <div
 //         className={`
-//         fixed top-0 left-0 h-full w-80 max-w-full bg-white shadow-xl z-50
-//         transform transition-transform duration-400 ease-in-out lg:hidden
-//         ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
-//       `}
+//           fixed top-0 left-0 h-full w-80 bg-white shadow-xl z-50 lg:hidden
+//           transform transition-transform duration-300
+//         `}
+//         style={{
+//           transform: isMenuOpen
+//             ? `translateX(${dragX}px)`
+//             : `translateX(calc(-100% + ${dragX}px))`,
+//         }}
+//         onTouchStart={handleTouchStart}
+//         onTouchMove={handleTouchMove}
+//         onTouchEnd={handleTouchEnd}
 //       >
 //         <MenuHeader
-//           onBack={showBackButton ? handleBack : undefined}
-//           onClose={handleCloseMenu}
-//           title={menuHeaderTitle}
-//           showBackButton={showBackButton}
+//           title={title}
+//           onClose={closeMenu}
+//           onBack={showBack ? handleBack : undefined}
+//           showBackButton={showBack}
 //         />
 
-//         {/* Main Menu Panel */}
+//         {/* START PANEL */}
 //         {activePanel === "start" && !catalogSubmenu && (
-//           <div className="h-full overflow-y-auto">
-//             {/* Catalog Section */}
-//             <div className="border-b border-gray-200">
-//               <MenuList
-//                 items={[
-//                   {
-//                     label: "Каталог",
-//                     hasSubmenu: true,
-//                     icon: <CatalogIcon />,
-//                   },
-//                 ]}
-//                 onSubmenuClick={handleCatalogClick}
-//               />
-//             </div>
+//           <div className="overflow-y-auto h-full">
+//             <MenuList
+//               items={[
+//                 { label: "Каталог", hasSubmenu: true, icon: <CatalogIcon /> },
+//               ]}
+//               onSubmenuClick={openCatalog}
+//             />
 
-//             {/* Main Menu Items */}
-//             <div className="border-b border-gray-200">
-//               <MenuList items={MENU_ITEMS} onItemClick={handleCloseMenu} />
-//             </div>
+//             <MenuList
+//               items={MENU_ITEMS}
+//               onItemClick={() => closeMenu()}
+//             />
 
-//             {/* Client Login */}
-//             <div className="border-b border-gray-200">
-//               <MenuList
-//                 items={[
-//                   {
-//                     href: "#login",
-//                     label: "Вхід для клієнтів",
-//                     icon: <ProfileIcon />,
-//                   },
-//                 ]}
-//               />
-//             </div>
+//             <MenuList
+//               items={[
+//                 {
+//                   href: "#login",
+//                   label: "Вхід для клієнтів",
+//                   icon: <ProfileIcon />,
+//                 },
+//               ]}
+//               onItemClick={() => closeMenu()}
+//             />
 
 //             {/* Contacts */}
-//             <div className="border-b border-gray-200">
-//               <div className="py-2">
-//                 <li className="px-4 py-2 text-sm text-gray-500">Контакти</li>
-//                 {CONTACTS.map((contact, index) => (
-//                   <li
-//                     key={index}
-//                     className="border-b border-gray-100 last:border-b-0"
+//             <div className="border-t border-gray-200 py-2">
+//               <li className="px-4 py-2 text-xs text-gray-500">Контакти</li>
+//               {CONTACTS.map((c, i) => (
+//                 <li key={i}>
+//                   <a
+//                     href={c.href}
+//                     className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50"
 //                   >
-//                     <a
-//                       href={contact.href}
-//                       className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-//                     >
-//                       <ContactIcon type={contact.type} />
-//                       {contact.label}
-//                     </a>
-//                   </li>
-//                 ))}
-//               </div>
+//                     <ContactIcon type={c.type} />
+//                     {c.label}
+//                   </a>
+//                 </li>
+//               ))}
 //             </div>
 
-//             {/* Social Media */}
+//             {/* Social */}
 //             <div className="p-4">
-//               <div className="text-sm font-medium text-gray-700 mb-3">
+//               <div className="text-sm font-semibold mb-3 text-gray-600">
 //                 МИ В СОЦМЕРЕЖАХ
 //               </div>
-//               <div className="flex space-x-4">
-//                 {SOCIAL_LINKS.map((social, index) => (
+
+//               <div className="flex gap-3">
+//                 {SOCIAL_LINKS.map((s, i) => (
 //                   <a
-//                     key={index}
-//                     href={social.href}
+//                     key={i}
+//                     href={s.href}
 //                     target="_blank"
 //                     rel="nofollow"
-//                     className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
-//                     title={social.title}
+//                     className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200 transition"
 //                   >
-//                     <SocialIcon icon={social.icon} />
+//                     <SocialIcon icon={s.icon} />
 //                   </a>
 //                 ))}
 //               </div>
@@ -185,56 +494,27 @@
 //           </div>
 //         )}
 
-//         {/* Catalog Panel */}
-//         <MenuList
-//           items={CATALOG_ITEMS.map((item) => ({
-//             ...item,
-//             // Для элементов с подменю - обработчик подменю
-//             // Для обычных элементов - href для Link
-//             onSubmenuClick: item.hasSubmenu
-//               ? undefined
-//               // () => handleSubmenuClick(item.label)
-//               : () => handleCategoryClick(item.href),
-//           }))}
-//         />
-//         {/* {activePanel === "catalog" && !catalogSubmenu && (
-//           <div className="h-full overflow-y-auto">
-//             <MenuList
-//               items={CATALOG_ITEMS.map((item) => ({
-//                 ...item,
-//                 onClick: item.hasSubmenu
-//                   ? () => handleSubmenuClick(item.label)
-//                   : () => handleCategoryClick(item.href),
-//               }))}
-//             />
-//           </div>
-//         )} */}
+//         {/* CATALOG PANEL */}
+//         {activePanel === "catalog" && !catalogSubmenu && (
+//           <MenuList
+//             items={CATALOG_ITEMS}
+//             onSubmenuClick={openSubmenu}
+//             onItemClick={(href?: string) => href && goTo(href)}
+//           />
+//         )}
 
-//         {/* Submenu Panel */}
-//         <MenuList
-//           items={currentSubmenuItems.map((item) => ({
-//             ...item,
-//                onSubmenuClick: item.hasSubmenu
-//               ?  handleSubmenuClick(item.label)
-//               : undefined,
-//           }))}
-//         />
-//         {/* {catalogSubmenu && (
-//           <div className="h-full overflow-y-auto">
-//             <MenuList
-//               items={currentSubmenuItems.map((item) => ({
-//                 ...item,
-//                 onClick: () => handleSubcategoryClick(item.href),
-//               }))}
-//             />
-//           </div>
-//         )} */}
+//         {/* SUBMENU PANEL */}
+//         {catalogSubmenu && (
+//           <MenuList
+//             items={currentSubmenuItems}
+//             onItemClick={(href?: string) => href && goTo(href)}
+//           />
+//         )}
 //       </div>
 //     </>
 //   );
 // };
-
-// export default memo(Menu);
+// export default memo(MenuMobile);
 
 // 'use client';
 
