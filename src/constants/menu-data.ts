@@ -1,6 +1,8 @@
 "use client";
 
-export const MENU_ITEMS = [
+import { CatalogItem, MenuItems } from "../types/menu";
+
+export const MENU_ITEMS: MenuItems[] = [
   { href: "/oplata-i-dostavka/", label: "Оплата і доставка" },
   { href: "/obmin-ta-povernennia/", label: "Обмін та повернення" },
   { href: "/dropshypinh/", label: "Дропшипінг" },
@@ -8,7 +10,7 @@ export const MENU_ITEMS = [
   { href: "/vidhuky-pro-mahazyn/", label: "Відгуки про магазин" },
 ] as const;
 
-export const CATALOG_ITEMS = [
+export const CATALOG_ITEMS: CatalogItem[] = [
   {
     slug: "rozprodazh",
     label: "РОЗПРОДАЖ",

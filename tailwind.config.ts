@@ -7,6 +7,13 @@
 //     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
 //   ],
 //   theme: {
+// screens: {
+// Mobile first: резиновая от 320px, адаптивная с 375px
+//   sm: '375px', // small mobile
+//   md: '768px', // tablet
+//   lg: '1024px',
+//   xl: '1440px', // desktop
+// },
 //     extend: {
 //       colors: {
 //         background: 'var(--background)',

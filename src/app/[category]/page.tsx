@@ -51,7 +51,20 @@ const categoryData = {
 };
 
 interface CategoryPageProps {
-  params: Promise<{ category: string }>;
+  params: Promise<{ category: string; product: string }>;
+}
+
+interface Product {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  originalPrice?: number | null;
+  image: string;
+  description: string;
+  sizes?: string[];
+  colors: string[];
+  inStock: boolean;
 }
 
 // const filtersData = {
@@ -62,13 +75,12 @@ interface CategoryPageProps {
 
 export default function CategoryPage({ params }: CategoryPageProps) {
   const { category } = use(params);
-  
+
   console.log(category);
   // В реальном приложении здесь будет запрос к API
-  const products = categoryData.products;
+ const products: Product[] = categoryData.products;
   const filter = categoryData.filters;
 
-  
   const [filters, setFilters] = useState({
     sizes: [] as string[],
     colors: [] as string[],
@@ -89,30 +101,24 @@ export default function CategoryPage({ params }: CategoryPageProps) {
     NotFound();
   }
 
-
-
   // Фильтрация товаров
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
     // Фильтр по размеру
     if (filters.sizes.length > 0) {
-      filtered = filtered.filter(product => 
-        product.sizes?.some(size => filters.sizes.includes(size))
+      filtered = filtered.filter((product) =>
+        product.sizes?.some((size) => filters.sizes.includes(size))
       );
     }
 
     // Фильтр по цвету
-    if (filters.colors.length > 0) {
-      filtered = filtered.filter(product => 
-        filters.colors.includes(product.colors)
-      );
-    }
+    // if (filters.colors.length > 0) {
+    //   filtered = filtered.filter((product) => filters.colors.includes(colors));
+    // }
 
     // Фильтр по цене
-    filtered = filtered.filter(product => 
-      product.price <= filters.price
-    );
+    filtered = filtered.filter((product) => product.price <= filters.price);
 
     // Сортировка
     switch (sortBy) {
@@ -155,7 +161,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
             </Link>
             <span className="text-gray-400">/</span>
             <Link href="/catalog" className="text-gray-500 hover:text-gray-700">
-             Каталог товарів
+              Каталог товарів
             </Link>
             <span className="text-gray-400">/</span>
             <span className="text-gray-900 font-medium">{categoryName}</span>

@@ -87,7 +87,7 @@ export default function Catalog() {
               {/* Изображение категории */}
               <div className="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
                 <div className="w-full h-full flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                  <span className="text-gray-400">Зображення {category.label}</span>
+                  <span className="text-gray-400">Зображення {category.slug}</span>
                 </div>
                 
                 {/* Бейдж количества */}

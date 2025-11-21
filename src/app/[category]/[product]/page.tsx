@@ -1,7 +1,6 @@
 "use client";
 
-import ProductGallery from "@/src/components/gallary1/ProductGallery";
-import Gallery from "@/src/components/gallery/Gallery";
+import Gallery from "@/src/components/Gallary/Gallery";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { use, useState } from "react";
@@ -59,73 +58,80 @@ interface ProductImage {
   alt: string;
   width: number;
   height: number;
-  id?: string; 
+  id?: string;
 }
 
 const productImages: ProductImage[] = [
   {
     id: "img-1",
     src: "https://dabiua.com/content/images/5/1125x1500l80mc0/shovkovi-strinhy-na-rehuliatorakh-75934208666041.webp",
-    thumb: "/content/images/5/450x600l95mc0/...kovi-strinhy-na-rehuliatorakh-75934208666041.webp",
+    thumb:
+      "/content/images/5/450x600l95mc0/...kovi-strinhy-na-rehuliatorakh-75934208666041.webp",
     alt: "Комплект із срібними ланцюжками M033 фото 1",
     width: 452,
     height: 600,
   },
   {
-    id: "img-2", 
+    id: "img-2",
     src: "https://dabiua.com/content/images/35/1125x1500l80mc0/copy_v-podibni-bezshovni-trusyky-slipy3384-55642697291817.webp",
-    thumb: "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
+    thumb:
+      "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
     alt: "Комплект із срібними ланцюжками M033 фото 2",
     width: 450,
     height: 600,
   },
-    {
-    id: "img-2", 
+  {
+    id: "img-2",
     src: "https://dabiua.com/content/images/35/1125x1500l80mc0/copy_v-podibni-bezshovni-trusyky-slipy3384-65008575853834.webp",
-    thumb: "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
+    thumb:
+      "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
     alt: "Комплект із срібними ланцюжками M033 фото 2",
     width: 450,
     height: 600,
   },
-    {
-    id: "img-2", 
+  {
+    id: "img-2",
     src: "https://dabiua.com/content/images/35/450x600l95mc0/copy_v-podibni-bezshovni-trusyky-slipy3384-65008575853834.webp",
-    thumb: "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
+    thumb:
+      "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
     alt: "Комплект із срібними ланцюжками M033 фото 2",
     width: 450,
     height: 600,
   },
-    {
-    id: "img-2", 
+  {
+    id: "img-2",
     src: "https://dabiua.com/content/images/35/450x600l95mc0/copy_v-podibni-bezshovni-trusyky-slipy3384-52024920301786.webp",
-    thumb: "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
+    thumb:
+      "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
     alt: "Комплект із срібними ланцюжками M033 фото 2",
     width: 450,
     height: 600,
   },
-    {
-    id: "img-2", 
+  {
+    id: "img-2",
     src: "https://dabiua.com/content/images/43/1125x1500l80mc0/96064270351015.webp",
-    thumb: "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
+    thumb:
+      "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
     alt: "Комплект із срібними ланцюжками M033 фото 2",
     width: 450,
     height: 600,
   },
-    {
-    id: "img-2", 
+  {
+    id: "img-2",
     src: "https://dabiua.com/content/images/43/1125x1500l80mc0/65396687783248.webp",
-    thumb: "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
+    thumb:
+      "/content/images/40/59x78l80nn0/komplekt-z-lantsiuzhkamy-61556165448669.webp",
     alt: "Комплект із срібними ланцюжками M033 фото 2",
     width: 450,
     height: 600,
   },
 ];
 
-export default function ProductPage({
-  params,
-}: {
-  params: { category: string; product: string };
-}) {
+interface CategoryPageProps {
+  params: Promise<{ category: string; product: string }>;
+}
+
+export default function ProductPage({ params }:  CategoryPageProps ) {
   const { category, product } = use(params);
 
   // В реальном приложении здесь будет запрос к API
@@ -135,75 +141,65 @@ export default function ProductPage({
 
   const [selectedColor, setSelectedColor] = useState(productData.colors[0]);
   const [selectedSize, setSelectedSize] = useState(productData.sizes[0]);
-  const [selectedImage, setSelectedImage] = useState(0);
+  // const [selectedImage, setSelectedImage] = useState(0);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Хлебные крошки */}
-      <nav className="bg-gray-50 border-b border-gray-200">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center space-x-2 text-sm">
-            <Link href="/" className="text-gray-500 hover:text-gray-700">
-              Головна
-            </Link>
-            <span className="text-gray-400">/</span>
-            <Link href="/shop" className="text-gray-500 hover:text-gray-700">
-              Магазин
-            </Link>
-            <span className="text-gray-400">/</span>
-            <Link
-              href={`/${category}`}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              {productData.category === "trusyky" ? "Трусики" : "Категорія"}
-            </Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900 font-medium">
-              {productData.name}
-            </span>
+    <section className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-8">
+        {/* Хлебные крошки */}
+        <nav className="bg-gray-50 border-b border-gray-200">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center space-x-2 text-sm">
+              <Link href="/" className="text-gray-500 hover:text-gray-700">
+                Головна
+              </Link>
+              <span className="text-gray-400">/</span>
+              <Link href="/shop" className="text-gray-500 hover:text-gray-700">
+                Магазин
+              </Link>
+              <span className="text-gray-400">/</span>
+              <Link
+                href={`/${category}`}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                {productData.category === "trusyky" ? "Трусики" : "Категорія"}
+              </Link>
+              <span className="text-gray-400">/</span>
+              <span className="text-gray-900 font-medium">
+                {productData.name}
+              </span>
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      <main className="container mx-auto px-4 py-8">
+        {/* <div 
+      className="  px-4 py-8"
+      > */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Галерея изображений */}
-          <div className="space-y-4">
-            <ProductGallery images={productImages}/>
-            {/* <Gallery
-              images={productImages}
-              title="Комплект із срібними ланцюжками"
-              enableZoom={true}
-              aspectRatio="1/1" // 👈 Для квадратных изображений
-              showThumbnails={true}
-              autoPlay={false}
-              position="bottom"
-            /> */}
-            {/* Главное изображение */}
-            {/* <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
-              <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                <span className="text-gray-500">Головне зображення товару</span>
+          <div className="">
+            <Gallery images={productImages} />
+            {/* Детальное описание и отзывы */}
+            <div className="mt-16">
+              <div className="border-b border-gray-200">
+                <nav className="flex space-x-8">
+                  {["Опис", "Характеристики", "Відгуки"].map((tab) => (
+                    <button
+                      key={tab}
+                      className="py-4 px-1 border-b-2 border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-700"
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </nav>
               </div>
-            </div> */}
 
-            {/* Миниатюры */}
-            {/* <div className="grid grid-cols-4 gap-3">
-              {productData.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`aspect-square bg-gray-100 rounded-xl overflow-hidden border-2 ${
-                    selectedImage === index
-                      ? "border-black"
-                      : "border-transparent"
-                  }`}
-                >
-                  <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                    <span className="text-xs text-gray-600">{index + 1}</span>
-                  </div>
-                </button>
-              ))}
-            </div> */}
+              <div className="py-8">
+                <p className="text-gray-700 leading-relaxed">
+                  {productData.fullDescription}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Информация о товаре */}
@@ -402,28 +398,8 @@ export default function ProductPage({
           </div>
         </div>
 
-        {/* Детальное описание и отзывы */}
-        <div className="mt-16">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8">
-              {["Опис", "Характеристики", "Відгуки"].map((tab) => (
-                <button
-                  key={tab}
-                  className="py-4 px-1 border-b-2 border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-700"
-                >
-                  {tab}
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          <div className="py-8">
-            <p className="text-gray-700 leading-relaxed">
-              {productData.fullDescription}
-            </p>
-          </div>
-        </div>
-      </main>
-    </div>
+        {/* </div> */}
+      </div>
+    </section>
   );
 }

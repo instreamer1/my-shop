@@ -126,11 +126,18 @@ const MenuMobile: React.FC<MenuMobileProps> = ({ isMenuOpen, setIsMenuOpen }) =>
   };
 
   // derived submenu items
-  const currentSubmenuItems = useMemo(() => {
-    if (!catalogSubmenu) return [];
-    const parent = CATALOG_ITEMS.find((i) => i.label === catalogSubmenu || i.slug === catalogSubmenu);
-    return parent?.submenuItems || [];
-  }, [catalogSubmenu]);
+const currentSubmenuItems = useMemo(() => {
+  if (!catalogSubmenu) return [];
+
+  const parent = CATALOG_ITEMS.find(
+    (i) => i.label === catalogSubmenu || i.slug === catalogSubmenu
+  );
+
+  if (!parent || !parent.hasSubmenu) return [];
+
+  return parent.submenuItems; // теперь TypeScript понимает, что это CatalogItemWithSubmenu
+}, [catalogSubmenu]);
+
 
   const title = useMemo(() => {
     if (catalogSubmenu) return catalogSubmenu;
